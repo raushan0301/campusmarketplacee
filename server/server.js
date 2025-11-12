@@ -3,7 +3,6 @@ require('express-async-errors');
 
 const express = require('express');
 const cors = require('cors');
-const mongoose = require('mongoose');
 const connectDB = require('./config/db');
 
 // Import routes
@@ -15,10 +14,22 @@ const app = express();
 
 // ===== MIDDLEWARE SETUP =====
 
-// CORS configuration - Allow frontend to make requests to backend
+// ✅ Updated CORS configuration
+const allowedOrigins = [
+  'http://localhost:5173', // for local development
+  'https://glittering-salamander-209639.netlify.app', // your live Netlify site
+];
+
 app.use(
   cors({
-    origin: 'http://localhost:5173',
+    origin: function (origin, callback) {
+      // Allow requests with no origin (like mobile apps or curl)
+      if (!origin || allowedOrigins.includes(origin)) {
+        callback(null, true);
+      } else {
+        callback(new Error('Not allowed by CORS'));
+      }
+    },
     credentials: true,
   })
 );
@@ -28,17 +39,14 @@ app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ limit: '10mb', extended: true }));
 
 // ===== ROUTES =====
+app.get('/', (req, res) => {
+  res.send('Campus Marketplace backend is running ✅');
+});
 
-// Authentication routes
 app.use('/api/auth', authRoutes);
-
-// Items/Listings routes
 app.use('/api/items', itemRoutes);
-
-// Reviews/Ratings routes
 app.use('/api/reviews', reviewRoutes);
 
-// Health check endpoint
 app.get('/api/health', (req, res) => {
   res.json({ message: 'Campus Market API is running!' });
 });
@@ -55,7 +63,7 @@ app.use((req, res) => {
 
 // Global error handler
 app.use((error, req, res, next) => {
-  console.error('Error:', error);
+  console.error('Error:', error.message || error);
   res.status(error.status || 500).json({
     message: error.message || 'Internal Server Error',
     error: process.env.NODE_ENV === 'development' ? error : {},
@@ -78,6 +86,5 @@ const startServer = async () => {
 };
 
 startServer();
-
 
 module.exports = app;
