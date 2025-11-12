@@ -72,10 +72,12 @@ const startServer = async () => {
     await connectDB();
 
     // Start Express server
-    app.listen(PORT, () => {
-      console.log(`🚀 Server running on port ${PORT}`);
-      console.log(`📍 API URL: http://localhost:${PORT}`);
-    });
+const PORT = process.env.PORT || 10000;
+
+app.listen(PORT, () => {
+  console.log(`✅ Server running on port ${PORT}`);
+});
+
   } catch (error) {
     console.error('Failed to start server:', error);
     process.exit(1);
